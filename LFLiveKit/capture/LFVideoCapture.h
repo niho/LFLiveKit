@@ -15,6 +15,8 @@
 #import "LFLiveVideoConfiguration.h"
 #endif
 
+@class GPUImageFilter;
+
 @class LFVideoCapture;
 /** LFVideoCapture callback videoData */
 @protocol LFVideoCaptureDelegate <NSObject>
@@ -40,20 +42,14 @@
 /** The captureDevicePosition control camraPosition ,default front*/
 @property (nonatomic, assign) AVCaptureDevicePosition captureDevicePosition;
 
-/** The beautyFace control capture shader filter empty or beautiy */
-@property (nonatomic, assign) BOOL beautyFace;
+/** The filter for processing the video image output. */
+@property (nonatomic, strong, nullable) GPUImageFilter *filter;
 
 /** The torch control capture flash is on or off */
 @property (nonatomic, assign) BOOL torch;
 
 /** The mirror control mirror of front camera is on or off */
 @property (nonatomic, assign) BOOL mirror;
-
-/** The beautyLevel control beautyFace Level, default 0.5, between 0.0 ~ 1.0 */
-@property (nonatomic, assign) CGFloat beautyLevel;
-
-/** The brightLevel control brightness Level, default 0.5, between 0.0 ~ 1.0 */
-@property (nonatomic, assign) CGFloat brightLevel;
 
 /** The torch control camera zoom scale default 1.0, between 1.0 ~ 3.0 */
 @property (nonatomic, assign) CGFloat zoomScale;

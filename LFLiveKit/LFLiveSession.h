@@ -26,6 +26,8 @@
 #endif
 
 
+@class GPUImageFilter;
+
 
 typedef NS_ENUM(NSInteger,LFLiveCaptureType) {
     LFLiveCaptureAudio,         //< capture only audio
@@ -166,6 +168,10 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 
 /** support outer input pcm audio(set LFLiveCaptureTypeMask) .*/
 - (void)pushAudio:(nullable NSData*)audioData;
+
+/** Add a GPUImageFilter to the filter chain. */
+- (void)setFilter:(nullable GPUImageFilter *)filter;
+
 
 @end
 

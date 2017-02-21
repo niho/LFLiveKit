@@ -10,6 +10,7 @@
 #import "UIControl+YYAdd.h"
 #import "UIView+YYAdd.h"
 #import <LFLiveKit/LFLiveKit.h>
+#import <GPUImage/GPUImage.h>
 
 inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
     if (elapsed_milli <= 0) {
@@ -118,19 +119,19 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
     NSLog(@"liveStateDidChange: %ld", state);
     switch (state) {
     case LFLiveReady:
-        _stateLabel.text = @"未连接";
+        _stateLabel.text = @"Ready";
         break;
     case LFLivePending:
-        _stateLabel.text = @"连接中";
+        _stateLabel.text = @"Pending";
         break;
     case LFLiveStart:
-        _stateLabel.text = @"已连接";
+        _stateLabel.text = @"Start";
         break;
     case LFLiveError:
-        _stateLabel.text = @"连接错误";
+        _stateLabel.text = @"Error";
         break;
     case LFLiveStop:
-        _stateLabel.text = @"未连接";
+        _stateLabel.text = @"Stop";
         break;
     default:
         break;
@@ -285,7 +286,7 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
 - (UILabel *)stateLabel {
     if (!_stateLabel) {
         _stateLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 20, 80, 40)];
-        _stateLabel.text = @"未连接";
+        _stateLabel.text = @"Not connected";
         _stateLabel.textColor = [UIColor whiteColor];
         _stateLabel.font = [UIFont boldSystemFontOfSize:14.f];
     }
@@ -333,6 +334,12 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
         _beautyButton.exclusiveTouch = YES;
         __weak typeof(self) _self = self;
         [_beautyButton addBlockForControlEvents:UIControlEventTouchUpInside block:^(id sender) {
+            if(_self.beautyButton.selected) {
+                [_self.session setFilter:nil];
+            } else {
+                GPUImageSmoothToonFilter *filter = [[GPUImageSmoothToonFilter alloc] init];
+                [_self.session setFilter:(GPUImageFilter *)filter];
+            }
             _self.session.beautyFace = !_self.session.beautyFace;
             _self.beautyButton.selected = !_self.session.beautyFace;
         }];
@@ -349,19 +356,19 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
         _startLiveButton.layer.cornerRadius = _startLiveButton.height/2;
         [_startLiveButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_startLiveButton.titleLabel setFont:[UIFont systemFontOfSize:16]];
-        [_startLiveButton setTitle:@"开始直播" forState:UIControlStateNormal];
+        [_startLiveButton setTitle:@"Start live" forState:UIControlStateNormal];
         [_startLiveButton setBackgroundColor:[UIColor colorWithRed:50 green:32 blue:245 alpha:1]];
         _startLiveButton.exclusiveTouch = YES;
         __weak typeof(self) _self = self;
         [_startLiveButton addBlockForControlEvents:UIControlEventTouchUpInside block:^(id sender) {
             _self.startLiveButton.selected = !_self.startLiveButton.selected;
             if (_self.startLiveButton.selected) {
-                [_self.startLiveButton setTitle:@"结束直播" forState:UIControlStateNormal];
+                [_self.startLiveButton setTitle:@"End live" forState:UIControlStateNormal];
                 LFLiveStreamInfo *stream = [LFLiveStreamInfo new];
                 stream.url = @"rtmp://live.hkstv.hk.lxdns.com:1935/live/stream153";
                 [_self.session startLive:stream];
             } else {
-                [_self.startLiveButton setTitle:@"开始直播" forState:UIControlStateNormal];
+                [_self.startLiveButton setTitle:@"Start live" forState:UIControlStateNormal];
                 [_self.session stopLive];
             }
         }];

@@ -21,8 +21,6 @@
 @interface LFVideoCapture ()
 
 @property (nonatomic, strong) GPUImageVideoCamera *videoCamera;
-@property (nonatomic, strong) LFGPUImageBeautyFilter *beautyFilter;
-@property (nonatomic, strong) GPUImageOutput<GPUImageInput> *filter;
 @property (nonatomic, strong) GPUImageCropFilter *cropfilter;
 @property (nonatomic, strong) GPUImageOutput<GPUImageInput> *output;
 @property (nonatomic, strong) GPUImageView *gpuImageView;
@@ -37,9 +35,8 @@
 @end
 
 @implementation LFVideoCapture
+@synthesize filter = _filter;
 @synthesize torch = _torch;
-@synthesize beautyLevel = _beautyLevel;
-@synthesize brightLevel = _brightLevel;
 @synthesize zoomScale = _zoomScale;
 
 #pragma mark -- LifeCycle
@@ -51,9 +48,6 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterForeground:) name:UIApplicationDidBecomeActiveNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(statusBarChanged:) name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
         
-        self.beautyFace = YES;
-        self.beautyLevel = 0.5;
-        self.brightLevel = 0.5;
         self.zoomScale = 1.0;
         self.mirror = YES;
     }
@@ -161,31 +155,9 @@
     _mirror = mirror;
 }
 
-- (void)setBeautyFace:(BOOL)beautyFace{
-    _beautyFace = beautyFace;
+- (void)setFilter:(GPUImageFilter *)filter {
+    _filter = filter;
     [self reloadFilter];
-}
-
-- (void)setBeautyLevel:(CGFloat)beautyLevel {
-    _beautyLevel = beautyLevel;
-    if (self.beautyFilter) {
-        [self.beautyFilter setBeautyLevel:_beautyLevel];
-    }
-}
-
-- (CGFloat)beautyLevel {
-    return _beautyLevel;
-}
-
-- (void)setBrightLevel:(CGFloat)brightLevel {
-    _brightLevel = brightLevel;
-    if (self.beautyFilter) {
-        [self.beautyFilter setBrightLevel:brightLevel];
-    }
-}
-
-- (CGFloat)brightLevel {
-    return _brightLevel;
 }
 
 - (void)setZoomScale:(CGFloat)zoomScale {
@@ -267,6 +239,7 @@
 }
 
 #pragma mark -- Custom Method
+
 - (void)processVideo:(GPUImageOutput *)output {
     __weak typeof(self) _self = self;
     @autoreleasepool {
@@ -279,22 +252,22 @@
 }
 
 - (void)reloadFilter{
-    [self.filter removeAllTargets];
+    if(self.filter) {
+        [self.filter removeAllTargets];
+    } else {
+        self.filter = [[LFGPUImageEmptyFilter alloc] init];
+    }
+    
+    if(self.output) {
+        [self.output removeAllTargets];
+    } else {
+        self.output = [[LFGPUImageEmptyFilter alloc] init];
+    }
+    
     [self.blendFilter removeAllTargets];
     [self.uiElementInput removeAllTargets];
     [self.videoCamera removeAllTargets];
-    [self.output removeAllTargets];
     [self.cropfilter removeAllTargets];
-    
-    if (self.beautyFace) {
-        self.output = [[LFGPUImageEmptyFilter alloc] init];
-        self.filter = [[LFGPUImageBeautyFilter alloc] init];
-        self.beautyFilter = (LFGPUImageBeautyFilter*)self.filter;
-    } else {
-        self.output = [[LFGPUImageEmptyFilter alloc] init];
-        self.filter = [[LFGPUImageEmptyFilter alloc] init];
-        self.beautyFilter = nil;
-    }
     
     ///< 调节镜像
     [self reloadMirror];
