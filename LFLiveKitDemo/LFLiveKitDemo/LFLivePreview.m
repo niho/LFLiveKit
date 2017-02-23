@@ -37,6 +37,7 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
 @property (nonatomic, strong) UIButton *cameraButton;
 @property (nonatomic, strong) UIButton *closeButton;
 @property (nonatomic, strong) UIButton *startLiveButton;
+@property (nonatomic, strong) UIView *filterView;
 @property (nonatomic, strong) UIView *containerView;
 @property (nonatomic, strong) LFLiveDebug *debugInfo;
 @property (nonatomic, strong) LFLiveSession *session;
@@ -57,6 +58,7 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
         [self.containerView addSubview:self.cameraButton];
         [self.containerView addSubview:self.beautyButton];
         [self.containerView addSubview:self.startLiveButton];
+        [self.containerView addSubview:self.filterView];
     }
     return self;
 }
@@ -263,11 +265,8 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
 //        NSURL *movieURL = [NSURL fileURLWithPath:pathToMovie];
 //        _session.saveLocalVideoPath = movieURL;
         
-        UIImageView *imageView = [[UIImageView alloc] init];
-        imageView.alpha = 0.8;
-        imageView.frame = CGRectMake(100, 100, 29, 29);
-        imageView.image = [UIImage imageNamed:@"ios-29x29"];
-        _session.warterMarkView = imageView;
+        GPUImageiOSBlurFilter *filter = [[GPUImageiOSBlurFilter alloc] init];
+        [_session addView:self.filterView withFilter:filter];
         
     }
     return _session;
@@ -281,6 +280,14 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
         _containerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     }
     return _containerView;
+}
+
+- (UIView *)filterView {
+    if (!_filterView) {
+        _filterView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 256, 256)];
+        _filterView.backgroundColor = [UIColor clearColor];
+    }
+    return _filterView;
 }
 
 - (UILabel *)stateLabel {
@@ -337,11 +344,10 @@ inline static NSString *formatedSpeed(float bytes, float elapsed_milli) {
             if(_self.beautyButton.selected) {
                 [_self.session setFilter:nil];
             } else {
-                GPUImageSmoothToonFilter *filter = [[GPUImageSmoothToonFilter alloc] init];
+                LFGPUImageBeautyFilter *filter = [[LFGPUImageBeautyFilter alloc] init];
                 [_self.session setFilter:(GPUImageFilter *)filter];
             }
-            _self.session.beautyFace = !_self.session.beautyFace;
-            _self.beautyButton.selected = !_self.session.beautyFace;
+            _self.beautyButton.selected = !_self.beautyButton.selected;
         }];
     }
     return _beautyButton;

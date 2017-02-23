@@ -82,15 +82,6 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 /** The captureDevicePosition control camraPosition ,default front*/
 @property (nonatomic, assign) AVCaptureDevicePosition captureDevicePosition;
 
-/** The beautyFace control capture shader filter empty or beautiy */
-@property (nonatomic, assign) BOOL beautyFace;
-
-/** The beautyLevel control beautyFace Level. Default is 0.5, between 0.0 ~ 1.0 */
-@property (nonatomic, assign) CGFloat beautyLevel;
-
-/** The brightLevel control brightness Level, Default is 0.5, between 0.0 ~ 1.0 */
-@property (nonatomic, assign) CGFloat brightLevel;
-
 /** The torch control camera zoom scale default 1.0, between 1.0 ~ 3.0 */
 @property (nonatomic, assign) CGFloat zoomScale;
 
@@ -123,11 +114,6 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 
 /** The reconnectCount control reconnect count (重连次数) *.*/
 @property (nonatomic, assign) NSUInteger reconnectCount;
-
-/*** The warterMarkView control whether the watermark is displayed or not ,if set ni,will remove watermark,otherwise add. 
- set alpha represent mix.Position relative to outVideoSize.
- *.*/
-@property (nonatomic, strong, nullable) UIView *warterMarkView;
 
 /* The currentImage is videoCapture shot */
 @property (nonatomic, strong,readonly ,nullable) UIImage *currentImage;
@@ -171,6 +157,13 @@ typedef NS_ENUM(NSInteger,LFLiveCaptureTypeMask) {
 
 /** Add a GPUImageFilter to the filter chain. */
 - (void)setFilter:(nullable GPUImageFilter *)filter;
+
+/**
+ Manage the output views.
+ */
+- (void)addView:(nonnull UIView *)view;
+- (void)addView:(nonnull UIView *)view withFilter:(nullable GPUImageFilter *)filter;
+- (void)removeAllViews;
 
 
 @end

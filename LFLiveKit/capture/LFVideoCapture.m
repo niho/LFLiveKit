@@ -25,12 +25,8 @@
 @property (nonatomic, strong) GPUImageOutput<GPUImageInput> *output;
 @property (nonatomic, strong) GPUImageView *gpuImageView;
 @property (nonatomic, strong) LFLiveVideoConfiguration *configuration;
-
-@property (nonatomic, strong) GPUImageAlphaBlendFilter *blendFilter;
-@property (nonatomic, strong) GPUImageUIElement *uiElementInput;
-@property (nonatomic, strong) UIView *waterMarkContentView;
-
 @property (nonatomic, strong) GPUImageMovieWriter *movieWriter;
+@property (nonatomic, strong) NSMutableArray<GPUImageOutput<GPUImageInput> *> *targets;
 
 @end
 
@@ -155,11 +151,6 @@
     _mirror = mirror;
 }
 
-- (void)setFilter:(GPUImageFilter *)filter {
-    _filter = filter;
-    [self reloadFilter];
-}
-
 - (void)setZoomScale:(CGFloat)zoomScale {
     if (self.videoCamera && self.videoCamera.inputCamera) {
         AVCaptureDevice *device = (AVCaptureDevice *)self.videoCamera.inputCamera;
@@ -175,42 +166,6 @@
     return _zoomScale;
 }
 
-- (void)setWarterMarkView:(UIView *)warterMarkView{
-    if(_warterMarkView && _warterMarkView.superview){
-        [_warterMarkView removeFromSuperview];
-        _warterMarkView = nil;
-    }
-    _warterMarkView = warterMarkView;
-    self.blendFilter.mix = warterMarkView.alpha;
-    [self.waterMarkContentView addSubview:_warterMarkView];
-    [self reloadFilter];
-}
-
-- (GPUImageUIElement *)uiElementInput{
-    if(!_uiElementInput){
-        _uiElementInput = [[GPUImageUIElement alloc] initWithView:self.waterMarkContentView];
-    }
-    return _uiElementInput;
-}
-
-- (GPUImageAlphaBlendFilter *)blendFilter{
-    if(!_blendFilter){
-        _blendFilter = [[GPUImageAlphaBlendFilter alloc] init];
-        _blendFilter.mix = 1.0;
-        [_blendFilter disableSecondFrameCheck];
-    }
-    return _blendFilter;
-}
-
-- (UIView *)waterMarkContentView{
-    if(!_waterMarkContentView){
-        _waterMarkContentView = [UIView new];
-        _waterMarkContentView.frame = CGRectMake(0, 0, self.configuration.videoSize.width, self.configuration.videoSize.height);
-        _waterMarkContentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    }
-    return _waterMarkContentView;
-}
-
 - (GPUImageView *)gpuImageView{
     if(!_gpuImageView){
         _gpuImageView = [[GPUImageView alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -221,9 +176,9 @@
 }
 
 -(UIImage *)currentImage{
-    if(_filter){
-        [_filter useNextFrameForImageCapture];
-        return _filter.imageFromCurrentFramebuffer;
+    if(_output){
+        [_output useNextFrameForImageCapture];
+        return _output.imageFromCurrentFramebuffer;
     }
     return nil;
 }
@@ -236,6 +191,42 @@
         self.videoCamera.audioEncodingTarget = self.movieWriter;
     }
     return _movieWriter;
+}
+
+- (void)setFilter:(GPUImageFilter *)filter {
+    _filter = filter;
+    [self reloadFilter];
+}
+
+- (void)addView:(UIView *)view {
+    [self addView:view withFilter:nil];
+}
+
+- (void)addView:(UIView *)view withFilter:(GPUImageFilter *)filter {
+    if (!filter) {
+        filter = [[LFGPUImageEmptyFilter alloc] init];
+    }
+    GPUImageView *gpuImageView = [[GPUImageView alloc] initWithFrame:view.bounds];
+    gpuImageView.fillMode = kGPUImageFillModePreserveAspectRatioAndFill;
+    gpuImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
+    [filter addTarget:gpuImageView];
+    [view addSubview:gpuImageView];
+    
+    [self.targets addObject:filter];
+    [self reloadFilter];
+}
+
+- (void)removeAllViews {
+    [self.targets removeAllObjects];
+    [self reloadFilter];
+}
+
+- (NSMutableArray *)targets {
+    if (!_targets) {
+        _targets = [[NSMutableArray alloc] init];
+    }
+    return _targets;
 }
 
 #pragma mark -- Custom Method
@@ -264,8 +255,6 @@
         self.output = [[LFGPUImageEmptyFilter alloc] init];
     }
     
-    [self.blendFilter removeAllTargets];
-    [self.uiElementInput removeAllTargets];
     [self.videoCamera removeAllTargets];
     [self.cropfilter removeAllTargets];
     
@@ -278,28 +267,25 @@
         self.cropfilter = [[GPUImageCropFilter alloc] initWithCropRegion:cropRect];
         [self.videoCamera addTarget:self.cropfilter];
         [self.cropfilter addTarget:self.filter];
+        [self.targets enumerateObjectsUsingBlock:^(GPUImageOutput<GPUImageInput> * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            [self.cropfilter addTarget:obj];
+            [obj forceProcessingAtSize:self.configuration.videoSize];
+        }];
     }else{
         [self.videoCamera addTarget:self.filter];
+        [self.targets enumerateObjectsUsingBlock:^(GPUImageOutput<GPUImageInput> * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            [self.videoCamera addTarget:obj];
+            [obj forceProcessingAtSize:self.configuration.videoSize];
+        }];
     }
     
     //< 添加水印
-    if(self.warterMarkView){
-        [self.filter addTarget:self.blendFilter];
-        [self.uiElementInput addTarget:self.blendFilter];
-        [self.blendFilter addTarget:self.gpuImageView];
-        if(self.saveLocalVideo) [self.blendFilter addTarget:self.movieWriter];
-        [self.filter addTarget:self.output];
-        [self.uiElementInput update];
-    }else{
-        [self.filter addTarget:self.output];
-        [self.output addTarget:self.gpuImageView];
-        if(self.saveLocalVideo) [self.output addTarget:self.movieWriter];
-    }
+    [self.filter addTarget:self.output];
+    [self.output addTarget:self.gpuImageView];
+    if(self.saveLocalVideo) [self.output addTarget:self.movieWriter];
     
     [self.filter forceProcessingAtSize:self.configuration.videoSize];
     [self.output forceProcessingAtSize:self.configuration.videoSize];
-    [self.blendFilter forceProcessingAtSize:self.configuration.videoSize];
-    [self.uiElementInput forceProcessingAtSize:self.configuration.videoSize];
     
     
     //< 输出数据

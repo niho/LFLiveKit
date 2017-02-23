@@ -43,7 +43,7 @@
 @property (nonatomic, assign) AVCaptureDevicePosition captureDevicePosition;
 
 /** The filter for processing the video image output. */
-@property (nonatomic, strong, nullable) GPUImageFilter *filter;
+@property (nonatomic, strong, nonnull) GPUImageFilter *filter;
 
 /** The torch control capture flash is on or off */
 @property (nonatomic, assign) BOOL torch;
@@ -56,9 +56,6 @@
 
 /** The videoFrameRate control videoCapture output data count */
 @property (nonatomic, assign) NSInteger videoFrameRate;
-
-/*** The warterMarkView control whether the watermark is displayed or not ,if set ni,will remove watermark,otherwise add *.*/
-@property (nonatomic, strong, nullable) UIView *warterMarkView;
 
 /* The currentImage is videoCapture shot */
 @property (nonatomic, strong, nullable) UIImage *currentImage;
@@ -81,5 +78,12 @@
    capture unstable.
  */
 - (nullable instancetype)initWithVideoConfiguration:(nullable LFLiveVideoConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
+
+/**
+   Manage the output views.
+ */
+- (void)addView:(nonnull UIView *)view;
+- (void)addView:(nonnull UIView *)view withFilter:(nullable GPUImageFilter *)filter;
+- (void)removeAllViews;
 
 @end

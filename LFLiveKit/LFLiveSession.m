@@ -121,10 +121,6 @@
     }
 }
 
-- (void)setFilter:(nullable GPUImageFilter *)filter {
-    [self.videoCaptureSource setFilter:filter];
-}
-
 #pragma mark -- PrivateMethod
 - (void)pushSendBuffer:(LFFrame*)frame{
     if(self.relativeTimestamps == 0){
@@ -306,16 +302,24 @@
     return self.audioCaptureSource.muted;
 }
 
-- (void)setWarterMarkView:(UIView *)warterMarkView{
-    [self.videoCaptureSource setWarterMarkView:warterMarkView];
-}
-
-- (nullable UIView*)warterMarkView{
-    return self.videoCaptureSource.warterMarkView;
-}
-
 - (nullable UIImage *)currentImage{
     return self.videoCaptureSource.currentImage;
+}
+
+- (void)setFilter:(nullable GPUImageFilter *)filter {
+    [self.videoCaptureSource setFilter:filter];
+}
+
+- (void)addView:(UIView *)view {
+    [self.videoCaptureSource addView:view];
+}
+
+- (void)addView:(UIView *)view withFilter:(GPUImageFilter *)filter {
+    [self.videoCaptureSource addView:view withFilter:filter];
+}
+
+- (void)removeAllViews {
+    [self.videoCaptureSource removeAllViews];
 }
 
 - (LFAudioCapture *)audioCaptureSource {

@@ -15,6 +15,8 @@
 #import <LFLiveKit/LFLiveStreamInfo.h>
 #import <LFLiveKit/LFVideoFrame.h>
 #import <LFLiveKit/LFLiveDebug.h>
+#import <LFLiveKit/LFGPUImageBeautyFilter.h>
+#import <LFLiveKit/LFGPUImageEmptyFilter.h>
 #else
 #import "LFLiveSession.h"
 #import "LFLiveAudioConfiguration.h"
@@ -24,5 +26,7 @@
 #import "LFLiveStreamInfo.h"
 #import "LFVideoFrame.h"
 #import "LFLiveDebug.h"
+#import "LFGPUImageBeautyFilter.h"
+#import "LFGPUImageEmptyFilter.h"
 #endif
 
