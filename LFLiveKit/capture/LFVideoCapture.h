@@ -15,7 +15,8 @@
 #import "LFLiveVideoConfiguration.h"
 #endif
 
-@class GPUImageFilter;
+@class GPUImageOutput;
+@protocol GPUImageInput;
 
 @class LFVideoCapture;
 /** LFVideoCapture callback videoData */
@@ -43,7 +44,7 @@
 @property (nonatomic, assign) AVCaptureDevicePosition captureDevicePosition;
 
 /** The filter for processing the video image output. */
-@property (nonatomic, strong, nonnull) GPUImageFilter *filter;
+@property (nonatomic, strong, nonnull) GPUImageOutput<GPUImageInput> *filter;
 
 /** The torch control capture flash is on or off */
 @property (nonatomic, assign) BOOL torch;
@@ -83,7 +84,7 @@
    Manage the output views.
  */
 - (void)addView:(nonnull UIView *)view;
-- (void)addView:(nonnull UIView *)view withFilter:(nullable GPUImageFilter *)filter;
+- (void)addView:(nonnull UIView *)view withFilter:(nullable GPUImageOutput<GPUImageInput> *)filter;
 - (void)removeAllViews;
 
 @end

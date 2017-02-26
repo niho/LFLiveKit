@@ -193,7 +193,7 @@
     return _movieWriter;
 }
 
-- (void)setFilter:(GPUImageFilter *)filter {
+- (void)setFilter:(GPUImageOutput<GPUImageInput> *)filter {
     _filter = filter;
     [self reloadFilter];
 }
@@ -202,7 +202,7 @@
     [self addView:view withFilter:nil];
 }
 
-- (void)addView:(UIView *)view withFilter:(GPUImageFilter *)filter {
+- (void)addView:(UIView *)view withFilter:(GPUImageOutput<GPUImageInput> *)filter {
     if (!filter) {
         filter = [[LFGPUImageEmptyFilter alloc] init];
     }
