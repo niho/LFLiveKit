@@ -200,7 +200,7 @@
     if (!_filter) {
         _filter = [[LFGPUImageEmptyFilter alloc] init];
         [_filter forceProcessingAtSize:self.configuration.videoSize];
-        [_filter addTarget:self.output];
+        [_filter addTarget:self.cropfilter];
     }
     return _filter;
 }
@@ -212,7 +212,7 @@
     }
     _filter = filter;
     [self.videoCamera addTarget:_filter];
-    [_filter addTarget:self.output];
+    [_filter addTarget:self.cropfilter];
 }
 
 - (void)addView:(UIView *)view {
@@ -232,6 +232,28 @@
     [view addSubview:gpuImageView];
     
     [self.videoCamera addTarget:filter];
+}
+
+- (GPUImageCropFilter *)cropfilter {
+    if (!_cropfilter) {
+        CGRect cropRect = self.configuration.landscape ?
+            CGRectMake(0, 0.125, 1, 0.75) :
+            CGRectMake(0.125, 0, 0.75, 1);
+        NSLog(@"%@", NSStringFromCGRect(cropRect));
+        _cropfilter = [[GPUImageCropFilter alloc] initWithCropRegion:cropRect];
+        [_cropfilter addTarget:self.output];
+        [self.output forceProcessingAtSize:self.configuration.videoSize];
+    }
+    return _cropfilter;
+}
+
+- (void)resetCropfilter {
+    if (_cropfilter) {
+        [_cropfilter removeAllTargets];
+        [self.filter removeTarget:_cropfilter];
+        _cropfilter = nil;
+        [self.filter addTarget:self.cropfilter];
+    }
 }
 
 - (GPUImageOutput<GPUImageInput> *)output {
@@ -285,6 +307,8 @@
 
     if(self.configuration.autorotate){
         self.videoCamera.outputImageOrientation = statusBar;
+        self.configuration.outputImageOrientation = statusBar;
+        [self resetCropfilter];
     }
 }
 
